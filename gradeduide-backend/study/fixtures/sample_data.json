@@ -1,0 +1,102 @@
+[
+  {
+    "model": "study.grade",
+    "pk": 1,
+    "fields": {
+      "name": "Grade 10"
+    }
+  },
+  {
+    "model": "study.subject",
+    "pk": 1,
+    "fields": {
+      "grade": 1,
+      "name": "Mathematics"
+    }
+  },
+  {
+    "model": "study.subject",
+    "pk": 2,
+    "fields": {
+      "grade": 1,
+      "name": "Science"
+    }
+  },
+  {
+    "model": "study.topic",
+    "pk": 1,
+    "fields": {
+      "subject": 1,
+      "title": "Trigonometry",
+      "weight": 3.5
+    }
+  },
+  {
+    "model": "study.topic",
+    "pk": 2,
+    "fields": {
+      "subject": 1,
+      "title": "Quadratic Equations",
+      "weight": 2.5
+    }
+  },
+  {
+    "model": "study.topic",
+    "pk": 3,
+    "fields": {
+      "subject": 2,
+      "title": "Chemical Reactions",
+      "weight": 4.0
+    }
+  },
+  {
+    "model": "study.resource",
+    "pk": 1,
+    "fields": {
+      "topic": 1,
+      "type": "YouTube",
+      "title": "Trigonometry Basics (By Vedantu)",
+      "url": "https://www.youtube.com/watch?v=ABC123"
+    }
+  },
+  {
+    "model": "study.resource",
+    "pk": 2,
+    "fields": {
+      "topic": 2,
+      "type": "Study Material",
+      "title": "Quadratic Equations Notes",
+      "url": "https://example.com/quadratic_notes.pdf"
+    }
+  },
+  {
+    "model": "study.resource",
+    "pk": 3,
+    "fields": {
+      "topic": 3,
+      "type": "YouTube",
+      "title": "Chemical Reactions Explained (By Unacademy)",
+      "url": "https://www.youtube.com/watch?v=XYZ456"
+    }
+  },
+  {
+    "model": "study.questionpaper",
+    "pk": 1,
+    "fields": {
+      "subject": 1,
+      "year": 2023,
+      "pdf_url": "https://example.com/maths_2023.pdf",
+      "solution_url": "https://example.com/maths_2023_solutions.pdf"
+    }
+  },
+  {
+    "model": "study.questionpaper",
+    "pk": 2,
+    "fields": {
+      "subject": 2,
+      "year": 2022,
+      "pdf_url": "https://example.com/science_2022.pdf",
+      "solution_url": ""
+    }
+  }
+]
