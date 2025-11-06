@@ -5,12 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LearnSmart | Select Exam</title>
   <link rel="stylesheet" href="css\css/select.css">
+  <style>
+    /* Quick inline styles for demonstration */
+    .container { max-width: 500px; margin: 50px auto; font-family: Arial, sans-serif; }
+    .form-step { margin: 15px 0; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    select { width: 100%; padding: 8px; }
+    button { padding: 10px 20px; margin-top: 20px; cursor: pointer; }
+  </style>
 </head>
 <body>
   <div class="container fade-in">
     <h1 id="welcomeMsg">Hello!</h1>
-    <h2>Select Your Grade, Exam & Subject</h2>
+    <h2>Select Your State, Grade, Exam & Subject</h2>
 
+    <!-- State Selector -->
+    <div class="form-step" id="stateSection">
+      <label for="stateSelect">Select State:</label>
+      <select id="stateSelect">
+        <option value="">--Select State--</option>
+        <option value="karnataka">Karnataka</option>
+        <option value="maharashtra">Maharashtra</option>
+        <option value="tamilnadu">Tamil Nadu</option>
+        <option value="telangana">Telangana</option>
+      </select>
+    </div>
+
+    <!-- Grade Selector -->
     <div class="form-step">
       <label for="gradeSelect">Choose Grade:</label>
       <select id="gradeSelect">
@@ -21,19 +42,27 @@
       </select>
     </div>
 
+    <!-- Exam Selector -->
     <div class="form-step" id="examSection" style="display:none;">
       <label for="examSelect">Select Exam:</label>
-      <select id="examSelect"></select>
+      <select id="examSelect">
+        <option value="">--Select Exam--</option>
+      </select>
     </div>
 
+    <!-- Subject Selector -->
     <div class="form-step" id="subjectSection" style="display:none;">
       <label for="subjectSelect">Select Subject:</label>
-      <select id="subjectSelect"></select>
+      <select id="subjectSelect">
+        <option value="">--Select Subject--</option>
+      </select>
     </div>
 
+    <!-- Continue Button -->
     <button id="continueBtn" style="display:none;">View Resources</button>
   </div>
 
+  <!-- Link to external JS -->
   <script src="script/select.js"></script>
 </body>
 </html>
