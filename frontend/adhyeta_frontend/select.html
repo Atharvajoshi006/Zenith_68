@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LearnSmart | Select Exam</title>
+  <link rel="stylesheet" href="css\css/select.css">
+</head>
+<body>
+  <div class="container fade-in">
+    <h1 id="welcomeMsg">Hello!</h1>
+    <h2>Select Your Grade, Exam & Subject</h2>
+
+    <div class="form-step">
+      <label for="gradeSelect">Choose Grade:</label>
+      <select id="gradeSelect">
+        <option value="">--Select Grade--</option>
+        <option value="8">Grade 8</option>
+        <option value="10">Grade 10</option>
+        <option value="12">Grade 12</option>
+      </select>
+    </div>
+
+    <div class="form-step" id="examSection" style="display:none;">
+      <label for="examSelect">Select Exam:</label>
+      <select id="examSelect"></select>
+    </div>
+
+    <div class="form-step" id="subjectSection" style="display:none;">
+      <label for="subjectSelect">Select Subject:</label>
+      <select id="subjectSelect"></select>
+    </div>
+
+    <button id="continueBtn" style="display:none;">View Resources</button>
+  </div>
+
+  <script src="script/select.js"></script>
+</body>
+</html>
