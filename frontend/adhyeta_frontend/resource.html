@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Learning Resources | ADHYETA</title>
-  <link rel="stylesheet" href="css/css/resource.css">
+
+  <!-- Your external CSS (keep your path) -->
+  <link rel="stylesheet" href="css/css/resource.css" />
+
+  <!-- Quick inline styles (kept from your version) -->
   <style>
     body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; }
     .navbar { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; background:#007acc; color:white; }
@@ -31,6 +35,8 @@
     <section id="resourceGrid" class="grid fade-in"></section>
   </main>
 
-  <script src="script/resource.js"></script>
+  <!-- Load scripts at the end, in the right order -->
+  <script src="./script/api.js"></script>
+  <script src="./script/resource.js"></script>
 </body>
 </html>
