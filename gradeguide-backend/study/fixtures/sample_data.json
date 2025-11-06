@@ -1,0 +1,17 @@
+[
+  { "model": "study.grade", "pk": 1, "fields": { "name": "8" } },
+
+  { "model": "study.subject", "pk": 1, "fields": { "name": "Maths", "grade": 1 } },
+  { "model": "study.subject", "pk": 2, "fields": { "name": "Science", "grade": 1 } },
+
+  { "model": "study.topic", "pk": 1, "fields": { "title": "Algebra Basics", "weight": 2, "subject": 1 } },
+  { "model": "study.topic", "pk": 2, "fields": { "title": "Geometry", "weight": 1, "subject": 1 } },
+  { "model": "study.topic", "pk": 3, "fields": { "title": "Motion and Force", "weight": 2, "subject": 2 } },
+
+  { "model": "study.resource", "pk": 1, "fields": { "title": "Algebra Notes PDF", "type": "PDF", "url": "https://example.com/algebra.pdf", "topic": 1 } },
+  { "model": "study.resource", "pk": 2, "fields": { "title": "Algebra Practice Video", "type": "Video", "url": "https://example.com/algebra-video", "topic": 1 } },
+  { "model": "study.resource", "pk": 3, "fields": { "title": "Geometry Workbook", "type": "PDF", "url": "https://example.com/geometry.pdf", "topic": 2 } },
+  { "model": "study.resource", "pk": 4, "fields": { "title": "Newton’s Laws Video", "type": "Video", "url": "https://example.com/newton-video", "topic": 3 } },
+
+  { "model": "study.questionpaper", "pk": 1, "fields": { "year": 2023, "pdf_url": "https://example.com/grade8_math_2023.pdf", "solution_url": "https://example.com/grade8_math_2023_solution.pdf", "subject": 1 } }
+]
