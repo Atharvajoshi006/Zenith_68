@@ -1,17 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LearnSmart | Select Exam</title>
-  <link rel="stylesheet" href="css\css/select.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADHYETA | Select Exam</title>
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="css/css/select.css" />
+
   <style>
-    /* Quick inline styles for demonstration */
-    .container { max-width: 500px; margin: 50px auto; font-family: Arial, sans-serif; }
+    /* Inline fallback styles */
+    .container { 
+      max-width: 500px; 
+      margin: 50px auto; 
+      font-family: Arial, sans-serif; 
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .fade-in { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from {opacity:0; transform: translateY(5px);} to {opacity:1; transform: translateY(0);} }
+
+    h1, h2 { text-align: center; color: #007acc; }
     .form-step { margin: 15px 0; }
     label { display: block; margin-bottom: 5px; font-weight: bold; }
-    select { width: 100%; padding: 8px; }
-    button { padding: 10px 20px; margin-top: 20px; cursor: pointer; }
+    select { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+    button { 
+      padding: 10px 20px; 
+      margin-top: 20px; 
+      cursor: pointer; 
+      width: 100%;
+      background: #007acc; 
+      color: #fff; 
+      border: none; 
+      border-radius: 5px; 
+      font-size: 16px;
+    }
+    button:hover { background: #005fa3; }
   </style>
 </head>
 <body>
@@ -36,9 +62,7 @@
       <label for="gradeSelect">Choose Grade:</label>
       <select id="gradeSelect">
         <option value="">--Select Grade--</option>
-        <option value="8">Grade 8</option>
-        <option value="10">Grade 10</option>
-        <option value="12">Grade 12</option>
+        <!-- Populated dynamically from backend -->
       </select>
     </div>
 
@@ -62,7 +86,8 @@
     <button id="continueBtn" style="display:none;">View Resources</button>
   </div>
 
-  <!-- Link to external JS -->
-  <script src="script/select.js"></script>
+  <!-- ✅ Load scripts in correct order -->
+  <script src="./script/api.js"></script>
+  <script src="./script/select.js"></script>
 </body>
 </html>
