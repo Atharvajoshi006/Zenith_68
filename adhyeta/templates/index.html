@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Adhyeta - Empowering Students to Learn Smarter</title>
 
-  <!-- Fixed favicon (put a small icon at static/favicon.png) -->
+  <!-- Favicon -->
   <link rel="icon" href="{% static 'favicon.png' %}" type="image/png" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -46,20 +46,20 @@
         <a href="#features" class="nav-link text-gray-600 font-medium">Features</a>
         <a href="#footer" class="nav-link text-gray-600 font-medium">Footer</a>
 
-        <!-- Contact & Dashboard Buttons -->
         <div class="flex items-center gap-3">
-          <!-- Contact Button (opens modal) -->
+          <!-- Contact (modal) -->
           <button id="contactBtn"
                   class="px-5 py-2 rounded-full text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 transition-transform">
             Contact
           </button>
 
-          <!-- Student Dashboard Button -->
+          <!-- Dashboard link (optional route) -->
           <a href="/dashboard/" id="dashboardBtn"
              class="px-5 py-2 rounded-full text-white bg-gradient-to-r from-green-600 to-teal-600 hover:scale-105 transition-transform">
             Student Dashboard
           </a>
 
+          <!-- Auth triggers (JS hooks on these anchors) -->
           <a href="#login" class="nav-link text-gray-600 font-medium">Login</a>
           <a href="#signup"
              class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full hover:scale-105 transition-transform">
@@ -70,16 +70,17 @@
     </nav>
   </header>
 
-  <!-- Hero Section -->
+  <!-- Hero -->
   <section id="home" class="gradient-bg text-white py-20 text-center relative">
     <h1 class="text-5xl md:text-7xl font-bold mb-6">Empowering Students to Learn Smarter</h1>
     <p class="text-lg md:text-2xl mb-8 text-purple-100 max-w-3xl mx-auto">
       Access personalized learning modules and track your progress in one place.
     </p>
-    <button class="cta-button text-white px-10 py-4 rounded-full text-lg font-bold shadow-2xl">Get Started Now 🎉</button>
+    <!-- Make the CTA open the signup modal by using an anchor -->
+    <a href="#signup" class="cta-button inline-block text-white px-10 py-4 rounded-full text-lg font-bold shadow-2xl">Get Started Now 🎉</a>
   </section>
 
-  <!-- About Section -->
+  <!-- About -->
   <section id="about" class="py-16 section-bg text-center">
     <h2 class="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
       Our Mission 🚀
@@ -89,7 +90,7 @@
     </p>
   </section>
 
-  <!-- Features Section -->
+  <!-- Features -->
   <section id="features" class="py-16 bg-white">
     <div class="max-w-7xl mx-auto px-4">
       <h2 class="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -154,7 +155,7 @@
                 class="px-5 py-2 rounded-full text-white bg-gradient-to-r from-orange-500 to-pink-600 hover:scale-105 transition-transform">
           Ask the Assistant
         </button>
-        <!-- Optional: quick access to planner -->
+        <!-- Optional: quick access to planner (hook later if needed) -->
         <button id="feature-planner"
                 class="mt-2 px-5 py-2 rounded-full text-white bg-gradient-to-r from-orange-500 to-pink-600 hover:scale-105 transition-transform">
           Plan with AI (Study Planner)
@@ -206,15 +207,15 @@
       <div class="p-6 space-y-4 text-gray-800">
         <p><strong>Email:</strong> <a class="text-blue-600 hover:underline" href="mailto:adhyeta@gmail.com">adhyeta@gmail.com</a></p>
         <p><strong>Phone:</strong> <a class="text-blue-600 hover:underline" href="tel:+910077663318">+91-0077663318</a></p>
-        <p><strong>Instagram:</strong> <a class="text-blue-600 hover:underline" target="_blank" href="https://instagram.com/adhyeta_1814">@adhyeta_1814</a></p>
+        <p><strong>Instagram:</strong> <a class="text-blue-600 hover:underline" target="_blank" rel="noopener" href="https://instagram.com/adhyeta_1814">@adhyeta_1814</a></p>
       </div>
     </div>
   </div>
 
-  <!-- Global JS (your existing app logic) -->
-  <script src="{% static 'js/app.js' %}"></script>
+  <!-- Global JS -->
+  <script src="{% static 'js/apps.js' %}"></script>
 
-  <!-- Minimal inline JS to ensure Contact modal works even without app.js changes -->
+  <!-- Minimal inline JS to keep Contact modal working even if apps.js changes -->
   <script>
     (function () {
       const contactBtn = document.getElementById('contactBtn');

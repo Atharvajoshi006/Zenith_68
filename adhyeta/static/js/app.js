@@ -4,272 +4,19 @@
 
 console.log("Adhyeta frontend initialized ✅");
 
+// -------------------------------
+// API Endpoints
+// -------------------------------
 const API = {
-    signup: '/api/signup',
-    login: '/api/login',
-    logout: '/api/logout',
-    me: '/api/me',
-    forgotPassword: '/api/forgot-password',
-    verifyOtp: '/api/verify-otp',
-    resetPassword: '/api/reset-password'
+  signup: '/api/signup',
+  login: '/api/login',
+  logout: '/api/logout',
+  me: '/api/me',
+  forgotPassword: '/api/forgot-password',
+  verifyOtp: '/api/verify-otp',
+  resetPassword: '/api/reset-password'
 };
 
-// -------------------------------
-// Utility Functions
-// -------------------------------
-function showToast(message, type = "success") {
-    const div = document.createElement("div");
-    div.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white shadow-lg z-50 transition-transform duration-300 ${
-        type === "error" ? "bg-red-600" : "bg-green-600"
-    }`;
-    div.textContent = message;
-    document.body.appendChild(div);
-    setTimeout(() => (div.style.transform = "translateX(0)"), 50);
-    setTimeout(() => {
-        div.style.transform = "translateX(200%)";
-        setTimeout(() => div.remove(), 300);
-    }, 3000);
-}
-
-// ---- CSRF helpers (Django) ----
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
-}
-
-async function fetchJSON(url, method = "GET", body) {
-  const opts = {
-    method,
-    headers: { "Content-Type": "application/json" },
-    credentials: "same-origin", // send cookies (incl. csrftoken)
-  };
-  if (body !== undefined) {
-    opts.body = JSON.stringify(body);
-    // add CSRF for unsafe methods (POST/PUT/PATCH/DELETE)
-    const csrf = getCookie("csrftoken");
-    if (csrf) opts.headers["X-CSRFToken"] = csrf;
-  }
-  const resp = await fetch(url, opts);
-  const data = await resp.json().catch(() => ({}));
-  return resp.ok ? { ok: true, data } : { ok: false, error: data?.message || resp.statusText };
-}
-
-
-// -------------------------------
-// Modal Helper
-// -------------------------------
-function createModal(title, content) {
-    const modal = document.createElement("div");
-    modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4";
-    modal.innerHTML = `
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full relative cool-shadow animate-fadeIn">
-            <h2 class="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">${title}</h2>
-            ${content}
-            <button id="closeModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    document.getElementById("closeModal").addEventListener("click", () => modal.remove());
-    modal.addEventListener("click", (e) => e.target === modal && modal.remove());
-    return modal;
-}
-
-// -------------------------------
-// Sign Up
-// -------------------------------
-document.querySelectorAll('a[href="#signup"]').forEach(link => {
-    link.addEventListener("click", (e) => {
-        e.preventDefault();
-        const content = `
-            <form id="signupForm" class="space-y-4">
-                <input id="student_name" placeholder="Full Name" class="w-full border rounded-xl p-3" required>
-                <input id="email" type="email" placeholder="Email Address" class="w-full border rounded-xl p-3" required>
-                <input id="phone" placeholder="Phone Number" class="w-full border rounded-xl p-3" required>
-                <input id="password" type="password" placeholder="Password" class="w-full border rounded-xl p-3" required>
-                <select id="student_type" class="w-full border rounded-xl p-3" required>
-                    <option value="">I am a...</option>
-                    <option>High School Student</option>
-                    <option>College Student</option>
-                    <option>Graduate Student</option>
-                    <option>Working Professional</option>
-                    <option>Other</option>
-                </select>
-                <button class="cta-button w-full py-3 rounded-xl font-semibold text-white">Create Account 🎉</button>
-            </form>
-        `;
-        const modal = createModal("Join Adhyeta 🚀", content);
-
-        document.getElementById("signupForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const data = {
-                student_name: student_name.value,
-                email: email.value,
-                phone: phone.value,
-                password: password.value,
-                student_type: student_type.value
-            };
-            const res = await fetchJSON(API.signup, "POST", data);
-            if (res.ok) {
-                showToast("Welcome to Adhyeta 🎓");
-                modal.remove();
-                loadDashboard();
-            } else showToast(res.error, "error");
-        });
-    });
-});
-
-// -------------------------------
-// Login
-// -------------------------------
-document.querySelectorAll('a[href="#login"]').forEach(link => {
-    link.addEventListener("click", (e) => {
-        e.preventDefault();
-        const content = `
-            <form id="loginForm" class="space-y-4">
-                <input id="login_email" type="email" placeholder="Email" class="w-full border rounded-xl p-3" required>
-                <input id="login_password" type="password" placeholder="Password" class="w-full border rounded-xl p-3" required>
-                <button class="cta-button w-full py-3 rounded-xl text-white font-semibold">Login 🚀</button>
-                <p class="text-center text-sm text-gray-600 mt-2">
-                    Forgot your password? <a href="#" id="forgotLink" class="text-purple-600 hover:underline">Reset it 🔑</a>
-                </p>
-            </form>
-        `;
-        const modal = createModal("Welcome Back 👋", content);
-
-        document.getElementById("loginForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const data = {
-                email: login_email.value,
-                password: login_password.value
-            };
-            const res = await fetchJSON(API.login, "POST", data);
-            if (res.ok) {
-                showToast(`Welcome ${res.data.student_name} 🎉`);
-                modal.remove();
-                loadDashboard();
-            } else showToast(res.error, "error");
-        });
-
-        document.getElementById("forgotLink").addEventListener("click", (e) => {
-            e.preventDefault();
-            modal.remove();
-            showForgotPassword();
-        });
-    });
-});
-
-// -------------------------------
-// Forgot Password + OTP Flow
-// -------------------------------
-function showForgotPassword() {
-    const content = `
-        <form id="forgotForm" class="space-y-4">
-            <input id="forgot_email" type="email" placeholder="Registered Email" class="w-full border rounded-xl p-3" required>
-            <button class="cta-button w-full py-3 rounded-xl text-white font-semibold">Send OTP 📱</button>
-        </form>
-    `;
-    const modal = createModal("Forgot Password 🔑", content);
-
-    document.getElementById("forgotForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const res = await fetchJSON(API.forgotPassword, "POST", { email: forgot_email.value });
-        if (res.ok) {
-            showToast(`OTP sent to ${res.data.phone_masked}`);
-            modal.remove();
-            showOtpVerify(forgot_email.value, res.data.otp_demo);
-        } else showToast(res.error, "error");
-    });
-}
-
-function showOtpVerify(email, otpDemo) {
-    const content = `
-        <form id="otpForm" class="space-y-4">
-            <p class="text-gray-600 text-center text-sm">We sent an OTP to your phone</p>
-            <input id="otp_code" maxlength="6" placeholder="Enter OTP" class="w-full border rounded-xl p-3 text-center" required>
-            <button class="cta-button w-full py-3 rounded-xl text-white font-semibold">Verify OTP ✅</button>
-        </form>
-    `;
-    const modal = createModal("OTP Verification 📲", content);
-
-    // Auto-fill demo OTP (for testing)
-    setTimeout(() => {
-        otp_code.value = otpDemo;
-        showToast("OTP auto-filled (demo)");
-    }, 2000);
-
-    document.getElementById("otpForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const res = await fetchJSON(API.verifyOtp, "POST", { email, code: otp_code.value });
-        if (res.ok) {
-            showToast("OTP Verified ✅");
-            modal.remove();
-            showResetPassword(email, otp_code.value);
-        } else showToast(res.error, "error");
-    });
-}
-
-function showResetPassword(email, code) {
-    const content = `
-        <form id="resetForm" class="space-y-4">
-            <input id="new_password" type="password" placeholder="New Password" class="w-full border rounded-xl p-3" required>
-            <input id="confirm_password" type="password" placeholder="Confirm Password" class="w-full border rounded-xl p-3" required>
-            <button class="cta-button w-full py-3 rounded-xl text-white font-semibold">Reset Password 🔒</button>
-        </form>
-    `;
-    const modal = createModal("Reset Password 🔐", content);
-
-    document.getElementById("resetForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (new_password.value !== confirm_password.value)
-            return showToast("Passwords do not match", "error");
-        const res = await fetchJSON(API.resetPassword, "POST", {
-            email,
-            code,
-            new_password: new_password.value
-        });
-        if (res.ok) {
-            showToast("Password updated successfully 🎉");
-            modal.remove();
-        } else showToast(res.error, "error");
-    });
-}
-
-// -------------------------------
-// Dashboard (after login)
-// -------------------------------
-async function loadDashboard() {
-    const res = await fetchJSON(API.me, "GET");
-    const dash = document.getElementById("dashboard");
-    if (res.ok && dash) {
-        const d = res.data;
-        document.getElementById("profile-name").textContent = d.student_name;
-        document.getElementById("profile-email").textContent = d.email;
-        document.getElementById("profile-phone").textContent = d.phone;
-        document.getElementById("profile-type").textContent = d.student_type;
-        document.getElementById("profile-joined").textContent = d.created_at.split("T")[0];
-        document.getElementById("profile-last-login").textContent = d.last_login
-            ? d.last_login.split("T")[0]
-            : "-";
-        dash.classList.remove("hidden");
-        window.scrollTo({ top: dash.offsetTop, behavior: "smooth" });
-    } else showToast("Please login first", "error");
-}
-
-// -------------------------------
-// Logout
-// -------------------------------
-const logoutBtn = document.getElementById("logout-btn");
-if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-        await fetchJSON(API.logout, "POST");
-        showToast("Logged out 👋");
-        location.reload();
-    });
-}
-// ========================
-// Learn Topics Easily UI
-// ========================
 const LEARN_API = {
   courses: '/api/courses',
   topics: (courseId) => `/api/topics?course_id=${courseId}`,
@@ -279,9 +26,315 @@ const LEARN_API = {
   myProgress: '/api/my-progress'
 };
 
-function learnModal(content){ 
-  const m=document.createElement('div');
-  m.className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
+const WEEKLY_API = {
+  weekly: '/api/progress-weekly',
+};
+
+const QUIZ_API = {
+  generate: (count = 6) => `/api/quiz/generate?count=${count}`,
+  submit: '/api/quiz/submit',
+  history: '/api/quiz/history',
+  seed: '/api/quiz/seed',
+};
+
+const AI_API = {
+  start: '/api/ai/start',
+  message: '/api/ai/message',
+};
+
+const HUB_API = {
+  exams: '/api/exams',
+  subjects: (slug) => `/api/subjects?exam_slug=${encodeURIComponent(slug)}`,
+  resources: (subjectId, kinds = 'youtube,notes,paper') => `/api/resources?subject_id=${subjectId}&kinds=${kinds}`,
+  weights: (slug) => `/api/weightages?exam_slug=${encodeURIComponent(slug)}`,
+  seed: '/api/studyhub-seed',
+};
+
+// -------------------------------
+// Utilities
+// -------------------------------
+function showToast(message, type = "success") {
+  const div = document.createElement("div");
+  div.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white shadow-lg z-50 transition-transform duration-300 ${
+    type === "error" ? "bg-red-600" : "bg-green-600"
+  }`;
+  div.style.transform = "translateX(200%)";
+  div.textContent = message;
+  document.body.appendChild(div);
+  requestAnimationFrame(() => (div.style.transform = "translateX(0)"));
+  setTimeout(() => {
+    div.style.transform = "translateX(200%)";
+    setTimeout(() => div.remove(), 300);
+  }, 3000);
+}
+
+// CSRF helpers (Django)
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+// Single, consistent fetch helper (keeps cookies + CSRF)
+async function fetchJSON(url, method = "GET", body) {
+  const headers = { "Content-Type": "application/json" };
+  const opts = {
+    method,
+    headers,
+    credentials: "same-origin", // send cookies (csrftoken, sessionid)
+  };
+  if (body !== undefined) {
+    opts.body = JSON.stringify(body);
+    const csrf = getCookie("csrftoken");
+    if (csrf) headers["X-CSRFToken"] = csrf;
+  }
+  const resp = await fetch(url, opts);
+  const data = await resp.json().catch(() => ({}));
+
+  // Backend returns { ok: True/False, data?/error? }
+  if (resp.ok && (data.ok === undefined || data.ok === true)) {
+    return { ok: true, data: data.data ?? data };
+  }
+  const msg = data?.error || data?.message || resp.statusText || "Request failed";
+  return { ok: false, error: msg, raw: data };
+}
+
+// -------------------------------
+// Modal helper
+// -------------------------------
+function createModal(title, content) {
+  const modal = document.createElement("div");
+  modal.className = "fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4";
+  modal.innerHTML = `
+    <div class="bg-white rounded-3xl p-8 max-w-md w-full relative shadow-xl">
+      <h2 class="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">${title}</h2>
+      ${content}
+      <button id="closeModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.querySelector("#closeModal").addEventListener("click", () => modal.remove());
+  modal.addEventListener("click", (e) => e.target === modal && modal.remove());
+  return modal;
+}
+
+// -------------------------------
+// Sign Up
+// -------------------------------
+document.querySelectorAll('a[href="#signup"]').forEach(link => {
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    const content = `
+      <form id="signupForm" class="space-y-4">
+        <input id="student_name" placeholder="Full Name" class="w-full border rounded-xl p-3" required>
+        <input id="email" type="email" placeholder="Email Address" class="w-full border rounded-xl p-3" required>
+        <input id="phone" placeholder="Phone Number" class="w-full border rounded-xl p-3" required>
+        <input id="password" type="password" placeholder="Password" class="w-full border rounded-xl p-3" required>
+        <select id="student_type" class="w-full border rounded-xl p-3" required>
+          <option value="">I am a...</option>
+          <option>High School Student</option>
+          <option>College Student</option>
+          <option>Graduate Student</option>
+          <option>Working Professional</option>
+          <option>Other</option>
+        </select>
+        <button class="cta-button w-full py-3 rounded-xl font-semibold text-white">Create Account 🎉</button>
+      </form>
+    `;
+    const modal = createModal("Join Adhyeta 🚀", content);
+
+    document.getElementById("signupForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = {
+        student_name: student_name.value.trim(),
+        email: email.value.trim(),
+        phone: phone.value.trim(),
+        password: password.value,
+        student_type: student_type.value
+      };
+      const res = await fetchJSON(API.signup, "POST", data);
+      if (res.ok) {
+        showToast("Welcome to Adhyeta 🎓");
+        modal.remove();
+        loadDashboard();
+      } else {
+        showToast(res.error, "error");
+      }
+    });
+  });
+});
+
+// -------------------------------
+// Login
+// -------------------------------
+document.querySelectorAll('a[href="#login"]').forEach(link => {
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    const content = `
+      <form id="loginForm" class="space-y-4">
+        <input id="login_email" type="email" placeholder="Email" class="w-full border rounded-xl p-3" required>
+        <input id="login_password" type="password" placeholder="Password" class="w-full border rounded-xl p-3" required>
+        <button class="cta-button w-full py-3 rounded-xl text-white font-semibold">Login 🚀</button>
+        <p class="text-center text-sm text-gray-600 mt-2">
+          Forgot your password? <a href="#" id="forgotLink" class="text-purple-600 hover:underline">Reset it 🔑</a>
+        </p>
+      </form>
+    `;
+    const modal = createModal("Welcome Back 👋", content);
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = { email: login_email.value.trim(), password: login_password.value };
+      const res = await fetchJSON(API.login, "POST", data);
+      if (res.ok) {
+        // Backend unified login may return student_name or first/last/username; handle all
+        const d = res.data;
+        const name = d.student_name || [d.first_name, d.last_name].filter(Boolean).join(' ') || d.username || 'Student';
+        showToast(`Welcome ${name} 🎉`);
+        modal.remove();
+        loadDashboard();
+      } else {
+        showToast(res.error, "error");
+      }
+    });
+
+    document.getElementById("forgotLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      modal.remove();
+      showForgotPassword();
+    });
+  });
+});
+
+// -------------------------------
+// Forgot Password + OTP Flow
+// -------------------------------
+function showForgotPassword() {
+  const content = `
+    <form id="forgotForm" class="space-y-4">
+      <input id="forgot_email" type="email" placeholder="Registered Email" class="w-full border rounded-xl p-3" required>
+      <button class="cta-button w-full py-3 rounded-xl text-white font-semibold">Send OTP 📱</button>
+    </form>
+  `;
+  const modal = createModal("Forgot Password 🔑", content);
+
+  document.getElementById("forgotForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const res = await fetchJSON(API.forgotPassword, "POST", { email: forgot_email.value.trim() });
+    if (res.ok) {
+      showToast(`OTP sent to ${res.data.phone_masked}`);
+      modal.remove();
+      showOtpVerify(forgot_email.value.trim(), res.data.otp_demo);
+    } else {
+      showToast(res.error, "error");
+    }
+  });
+}
+
+function showOtpVerify(email, otpDemo) {
+  const content = `
+    <form id="otpForm" class="space-y-4">
+      <p class="text-gray-600 text-center text-sm">We sent an OTP to your phone</p>
+      <input id="otp_code" maxlength="6" placeholder="Enter OTP" class="w-full border rounded-xl p-3 text-center" required>
+      <button class="cta-button w-full py-3 rounded-xl text-white font-semibold">Verify OTP ✅</button>
+    </form>
+  `;
+  const modal = createModal("OTP Verification 📲", content);
+
+  // Auto-fill demo OTP (for local testing)
+  if (otpDemo) {
+    setTimeout(() => {
+      const el = document.getElementById('otp_code');
+      if (el && !el.value) {
+        el.value = otpDemo;
+        showToast("OTP auto-filled (demo)");
+      }
+    }, 1200);
+  }
+
+  document.getElementById("otpForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const res = await fetchJSON(API.verifyOtp, "POST", { email, code: otp_code.value.trim() });
+    if (res.ok) {
+      showToast("OTP Verified ✅");
+      modal.remove();
+      showResetPassword(email, otp_code.value.trim());
+    } else {
+      showToast(res.error, "error");
+    }
+  });
+}
+
+function showResetPassword(email, code) {
+  const content = `
+    <form id="resetForm" class="space-y-4">
+      <input id="new_password" type="password" placeholder="New Password" class="w-full border rounded-xl p-3" required>
+      <input id="confirm_password" type="password" placeholder="Confirm Password" class="w-full border rounded-xl p-3" required>
+      <button class="cta-button w-full py-3 rounded-xl text-white font-semibold">Reset Password 🔒</button>
+    </form>
+  `;
+  const modal = createModal("Reset Password 🔐", content);
+
+  document.getElementById("resetForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (new_password.value !== confirm_password.value) {
+      return showToast("Passwords do not match", "error");
+    }
+    const res = await fetchJSON(API.resetPassword, "POST", {
+      email,
+      code,
+      new_password: new_password.value
+    });
+    if (res.ok) {
+      showToast("Password updated successfully 🎉");
+      modal.remove();
+    } else {
+      showToast(res.error, "error");
+    }
+  });
+}
+
+// -------------------------------
+// Dashboard (after login)
+// -------------------------------
+async function loadDashboard() {
+  const res = await fetchJSON(API.me, "GET");
+  const dash = document.getElementById("dashboard");
+  if (res.ok && dash) {
+    const d = res.data;
+    const name = d.student_name || d.full_name || [d.first_name, d.last_name].filter(Boolean).join(' ') || d.email?.split('@')[0] || 'Student';
+    document.getElementById("profile-name").textContent = name;
+    document.getElementById("profile-email").textContent = d.email || '-';
+    document.getElementById("profile-phone").textContent = d.phone || '-';
+    document.getElementById("profile-type").textContent = d.student_type || '-';
+    document.getElementById("profile-joined").textContent = (d.created_at || '').split("T")[0] || '-';
+    document.getElementById("profile-last-login").textContent = d.last_login ? d.last_login.split("T")[0] : "-";
+    dash.classList.remove("hidden");
+    window.scrollTo({ top: dash.offsetTop, behavior: "smooth" });
+  } else {
+    showToast("Please login first", "error");
+  }
+}
+
+// -------------------------------
+// Logout
+// -------------------------------
+const logoutBtn = document.getElementById("logout-btn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    await fetchJSON(API.logout, "POST", {});
+    showToast("Logged out 👋");
+    location.reload();
+  });
+}
+
+// ========================
+// Learn Topics Easily UI
+// ========================
+function learnModal(content) {
+  const m = document.createElement('div');
+  m.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
   m.innerHTML = `
     <div class="bg-white rounded-3xl w-full max-w-5xl overflow-hidden">
       <div class="p-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-between">
@@ -296,13 +349,12 @@ function learnModal(content){
       </div>
     </div>`;
   document.body.appendChild(m);
-  m.querySelector('#learnClose').onclick=()=>m.remove();
-  m.addEventListener('click',e=>{ if(e.target===m) m.remove(); });
-  return {root:m, sidebar:m.querySelector('#learnSidebar'), main:m.querySelector('#learnMain')};
+  m.querySelector('#learnClose').onclick = () => m.remove();
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+  return { root: m, sidebar: m.querySelector('#learnSidebar'), main: m.querySelector('#learnMain') };
 }
 
-async function ensureDemoCourses(){
-  // Try fetch courses; if empty, seed
+async function ensureDemoCourses() {
   let r = await fetchJSON(LEARN_API.courses, 'GET');
   if (r.ok && r.data.courses.length) return r.data.courses;
   await fetchJSON(LEARN_API.seed, 'POST', {});
@@ -310,11 +362,10 @@ async function ensureDemoCourses(){
   return r.data.courses;
 }
 
-async function openLearn(){
+async function openLearn() {
   const ui = learnModal();
   const courses = await ensureDemoCourses();
 
-  // Render courses in sidebar
   ui.sidebar.innerHTML = `
     <div class="mb-3">
       <h4 class="font-semibold text-gray-800 mb-2">Courses</h4>
@@ -323,18 +374,22 @@ async function openLearn(){
     <div id="topicContainer"></div>
   `;
   const courseList = ui.sidebar.querySelector('#courseList');
-  courses.forEach(c=>{
+  courses.forEach(c => {
     const btn = document.createElement('button');
     btn.className = 'w-full text-left px-3 py-2 rounded-lg hover:bg-purple-50 border';
     btn.innerHTML = `<div class="font-medium">${c.title}</div>
                      <div class="text-xs text-gray-500">${c.topics_count} topics • ${c.lessons_count} lessons</div>`;
-    btn.onclick = ()=> loadTopics(c.id, ui);
+    btn.onclick = () => loadTopics(c.id, ui);
     courseList.appendChild(btn);
   });
 }
 
-async function loadTopics(courseId, ui){
+async function loadTopics(courseId, ui) {
   const r = await fetchJSON(LEARN_API.topics(courseId), 'GET');
+  if (!r.ok) {
+    ui.main.innerHTML = `<p class="text-red-600">${r.error}</p>`;
+    return;
+  }
   const topics = r.data.topics || [];
   const box = ui.sidebar.querySelector('#topicContainer');
   box.innerHTML = `
@@ -342,37 +397,41 @@ async function loadTopics(courseId, ui){
     <div id="topicList" class="space-y-2"></div>`;
   const list = box.querySelector('#topicList');
   list.innerHTML = '';
-  topics.forEach(t=>{
-    const b=document.createElement('button');
-    b.className='w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 border';
+  topics.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 border';
     b.textContent = t.title;
-    b.onclick = ()=> loadLessons(t.id, ui);
+    b.onclick = () => loadLessons(t.id, ui);
     list.appendChild(b);
   });
   ui.main.innerHTML = `<p class="text-gray-600">Choose a topic to see its lessons.</p>`;
 }
 
-async function loadLessons(topicId, ui){
+async function loadLessons(topicId, ui) {
   const r = await fetchJSON(LEARN_API.lessons(topicId), 'GET');
+  if (!r.ok) {
+    ui.main.innerHTML = `<p class="text-red-600">${r.error}</p>`;
+    return;
+  }
   const lessons = r.data.lessons || [];
   ui.main.innerHTML = `
     <h3 class="text-xl font-semibold mb-3">${r.data.topic.title}</h3>
     <div class="space-y-4" id="lessonList"></div>`;
   const list = ui.main.querySelector('#lessonList');
 
-  lessons.forEach(l=>{
+  lessons.forEach(l => {
     const card = document.createElement('div');
-    card.className='border rounded-xl p-4';
+    card.className = 'border rounded-xl p-4';
     card.innerHTML = `
       <div class="flex items-start justify-between">
         <div>
           <div class="font-semibold">${l.order}. ${l.title}</div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-sm ${l.completed?'text-green-600':'text-gray-400'}" id="status-${l.id}">
+          <span class="text-sm ${l.completed ? 'text-green-600' : 'text-gray-400'}" id="status-${l.id}">
             ${l.completed ? 'Completed ✔' : 'Not completed'}
           </span>
-          <button class="px-3 py-1 rounded-full text-white ${l.completed?'bg-green-500':'bg-purple-600 hover:bg-purple-700'}" id="btn-${l.id}">
+          <button class="px-3 py-1 rounded-full text-white ${l.completed ? 'bg-green-500' : 'bg-purple-600 hover:bg-purple-700'}" id="btn-${l.id}">
             ${l.completed ? 'Done' : 'Mark Complete'}
           </button>
         </div>
@@ -381,39 +440,36 @@ async function loadLessons(topicId, ui){
     `;
     list.appendChild(card);
 
-    if (!l.completed){
-      card.querySelector(`#btn-${l.id}`).onclick = async ()=>{
+    if (!l.completed) {
+      card.querySelector(`#btn-${l.id}`).onclick = async () => {
         const res = await fetchJSON(LEARN_API.mark, 'POST', { lesson_id: l.id });
-        if (res.ok){
+        if (res.ok) {
           card.querySelector(`#status-${l.id}`).textContent = 'Completed ✔';
           card.querySelector(`#status-${l.id}`).className = 'text-sm text-green-600';
           const btn = card.querySelector(`#btn-${l.id}`);
           btn.textContent = 'Done';
           btn.className = 'px-3 py-1 rounded-full text-white bg-green-500';
+        } else {
+          showToast(res.error, 'error');
         }
       };
     }
   });
 }
 
-// Hook the feature card (button) by id
 const learnFeature = document.getElementById('feature-learn');
 if (learnFeature) {
-  learnFeature.addEventListener('click', (e)=>{
+  learnFeature.addEventListener('click', (e) => {
     e.preventDefault();
     openLearn();
   });
 }
-// ========================
-// Weekly Progress (last 7 days)
-// ========================
-const WEEKLY_API = {
-  weekly: '/api/progress-weekly',
-};
 
-// Tiny helper to draw bars with Tailwind classes
+// ========================
+// Weekly Progress (last 7 days) + Overview tab (computed)
+// ========================
 function renderWeeklyBars(days) {
-  const max = Math.max(1, ...days.map(d => d.count)); // avoid 0/0
+  const max = Math.max(1, ...days.map(d => d.count));
   return `
     <div class="grid grid-cols-7 gap-3 items-end h-40">
       ${days.map(d => {
@@ -430,12 +486,11 @@ function renderWeeklyBars(days) {
       }).join('')}
     </div>
     <div class="mt-3 text-sm text-gray-600">
-      Peak day: <span class="font-medium">${(days.find(d => d.count === Math.max(...days.map(x=>x.count))) || {}).label || '-'}</span>
+      Peak day: <span class="font-medium">${(days.find(d => d.count === Math.max(...days.map(x => x.count))) || {}).label || '-'}</span>
     </div>
   `;
 }
 
-// Re-openable Progress modal with tabs (Overview / Weekly)
 function progressTabbedModal() {
   const m = document.createElement('div');
   m.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
@@ -465,19 +520,35 @@ function progressTabbedModal() {
   m.querySelector('#progressClose').onclick = close;
   m.addEventListener('click', e => { if (e.target === m) close(); });
 
-  // Tab handlers
+  // Overview = derived from /api/my-progress + /api/progress-weekly
   const goOverview = async () => {
     body.innerHTML = '<p class="text-gray-600">Loading…</p>';
     try {
-      const res = await fetchJSON('/api/progress-summary', 'GET');
-      if (!res.ok) throw new Error(res.error || 'Failed to load progress');
-      const d = res.data;
-      const per = d.per_course.length
-        ? d.per_course.map(c => `
+      const [pRes, wRes] = await Promise.all([
+        fetchJSON(LEARN_API.myProgress, 'GET'),
+        fetchJSON(WEEKLY_API.weekly, 'GET'),
+      ]);
+      if (!pRes.ok) throw new Error(pRes.error || 'Failed to load progress');
+      const perCourseRaw = pRes.data.progress || [];
+      const lessonsCompleted = perCourseRaw.reduce((sum, c) => sum + (c.lessons_done || 0), 0);
+      const coursesEnrolled = perCourseRaw.length;
+
+      // streak from weekly: consecutive non-zero days ending today
+      let streak = 0;
+      if (wRes.ok) {
+        const days = (wRes.data.days || []).slice().reverse(); // today last -> reverse for today-first
+        for (const d of days) {
+          if ((d.count || 0) > 0) streak += 1;
+          else break;
+        }
+      }
+
+      const per = perCourseRaw.length
+        ? perCourseRaw.map(c => `
             <div class="border rounded-xl p-3">
               <div class="flex items-center justify-between mb-2">
-                <div class="font-medium">${c.title}</div>
-                <div class="text-sm text-gray-600">${c.done}/${c.total} (${c.percent}%)</div>
+                <div class="font-medium">${c.course_title}</div>
+                <div class="text-sm text-gray-600">${c.lessons_done}/${c.lessons_total} (${c.percent}%)</div>
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2">
                 <div class="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600" style="width:${c.percent}%;"></div>
@@ -485,31 +556,24 @@ function progressTabbedModal() {
             </div>`).join('')
         : '<p class="text-gray-600">You are not enrolled in any courses yet.</p>';
 
-      const ach = d.achievements.length
-        ? d.achievements.map(a => `<li class="flex items-center gap-2"><span>🏆</span><span>${a}</span></li>`).join('')
-        : '<li class="text-gray-500">No achievements yet. Keep learning!</li>';
-
       body.innerHTML = `
         <div class="grid md:grid-cols-3 gap-4 mb-6">
           <div class="bg-white border rounded-2xl p-4">
             <div class="text-sm text-gray-500">Courses Enrolled</div>
-            <div class="text-2xl font-bold text-blue-600">${d.courses_enrolled}</div>
+            <div class="text-2xl font-bold text-blue-600">${coursesEnrolled}</div>
           </div>
           <div class="bg-white border rounded-2xl p-4">
             <div class="text-sm text-gray-500">Lessons Completed</div>
-            <div class="text-2xl font-bold text-green-600">${d.lessons_completed}</div>
+            <div class="text-2xl font-bold text-green-600">${lessonsCompleted}</div>
           </div>
           <div class="bg-white border rounded-2xl p-4">
             <div class="text-sm text-gray-500">Current Streak</div>
-            <div class="text-2xl font-bold text-purple-600">${d.streak_days} days</div>
+            <div class="text-2xl font-bold text-purple-600">${streak} day${streak === 1 ? '' : 's'}</div>
           </div>
         </div>
 
         <h4 class="font-semibold text-gray-800 mb-2">Per-Course Progress</h4>
         <div class="space-y-3 mb-6">${per}</div>
-
-        <h4 class="font-semibold text-gray-800 mb-2">Achievements</h4>
-        <ul class="space-y-1">${ach}</ul>
       `;
     } catch (e) {
       body.innerHTML = `<p class="text-red-600">Error: ${e.message}</p>`;
@@ -547,27 +611,27 @@ function progressTabbedModal() {
     const ovM = m.querySelector('#tabOverviewMobile');
     const wkM = m.querySelector('#tabWeeklyMobile');
 
-    [[ov, which==='overview'], [wk, which==='weekly'], [ovM, which==='overview'], [wkM, which==='weekly']].forEach(([el, active])=>{
-      if (!el) return;
-      el.className = 'px-3 py-1 rounded-full ' + (active ? 'bg-white/80 text-gray-800' : 'bg-white/20 text-white');
-      if (el.id.endsWith('Mobile')) {
-        el.className = 'px-3 py-1 rounded-full ' + (active ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700');
-      }
-    });
+    [[ov, which === 'overview'], [wk, which === 'weekly'], [ovM, which === 'overview'], [wkM, which === 'weekly']]
+      .forEach(([el, active]) => {
+        if (!el) return;
+        const base = el.id.endsWith('Mobile') ? 'px-3 py-1 rounded-full ' : 'px-3 py-1 rounded-full ';
+        const on = el.id.endsWith('Mobile') ? 'bg-purple-100 text-purple-700' : 'bg-white/80 text-gray-800';
+        const off = el.id.endsWith('Mobile') ? 'bg-gray-100 text-gray-700' : 'bg-white/20 text-white';
+        el.className = base + (active ? on : off);
+      });
   }
 
-  // Attach tab events
-  const ovEls = [m.querySelector('#tabOverview'), m.querySelector('#tabOverviewMobile')].filter(Boolean);
-  const wkEls = [m.querySelector('#tabWeekly'), m.querySelector('#tabWeeklyMobile')].filter(Boolean);
-  ovEls.forEach(btn => btn.addEventListener('click', goOverview));
-  wkEls.forEach(btn => btn.addEventListener('click', goWeekly));
+  // Attach tabs
+  [m.querySelector('#tabOverview'), m.querySelector('#tabOverviewMobile')].filter(Boolean)
+    .forEach(btn => btn.addEventListener('click', goOverview));
+  [m.querySelector('#tabWeekly'), m.querySelector('#tabWeeklyMobile')].filter(Boolean)
+    .forEach(btn => btn.addEventListener('click', goWeekly));
 
-  // Default: Overview first, then user can switch to Weekly
+  // Default view
   goOverview();
   return m;
 }
 
-// Replace your existing openProgress binding to use the tabbed modal:
 const trackBtn2 = document.getElementById('feature-track');
 if (trackBtn2) {
   trackBtn2.addEventListener('click', (e) => {
@@ -575,16 +639,10 @@ if (trackBtn2) {
     progressTabbedModal();
   });
 }
-// ========================
-// Interactive Quizzes (Adaptive to Weekly Progress)
-// ========================
-const QUIZ_API = {
-  generate: (count=6) => `/api/quiz/generate?count=${count}`,
-  submit: '/api/quiz/submit',
-  history: '/api/quiz/history',
-  seed: '/api/quiz/seed',
-};
 
+// ========================
+// Interactive Quizzes
+// ========================
 function quizModalSkeleton() {
   const m = document.createElement('div');
   m.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
@@ -601,15 +659,13 @@ function quizModalSkeleton() {
   document.body.appendChild(m);
   m.querySelector('#quizClose').onclick = () => m.remove();
   m.addEventListener('click', e => { if (e.target === m) m.remove(); });
-  return {root: m, body: m.querySelector('#quizBody')};
+  return { root: m, body: m.querySelector('#quizBody') };
 }
 
 async function ensureQuizSeed() {
-  // If no questions, seed quickly
-  try {
-    const r = await fetchJSON(QUIZ_API.history, 'GET');
-    return; // history endpoint works, assume DB seeded or fine
-  } catch {
+  // If history works (logged-in), assume DB is seeded or fine; otherwise try seeding.
+  const r = await fetchJSON(QUIZ_API.history, 'GET');
+  if (!r.ok) {
     await fetchJSON(QUIZ_API.seed, 'POST', {});
   }
 }
@@ -626,13 +682,12 @@ async function openQuiz(count = 6) {
       return;
     }
 
-    // Render quiz
     ui.body.innerHTML = `
       <form id="quizForm" class="space-y-5">
         ${questions.map((q, idx) => `
           <div class="border rounded-xl p-4">
             <div class="text-sm text-gray-500 mb-1">${q.topic} • ${q.difficulty.toUpperCase()}</div>
-            <div class="font-medium mb-3">${idx+1}. ${q.text}</div>
+            <div class="font-medium mb-3">${idx + 1}. ${q.text}</div>
             <div class="space-y-2">
               ${q.choices.map(c => `
                 <label class="flex items-center gap-2">
@@ -659,7 +714,7 @@ async function openQuiz(count = 6) {
       const formData = new FormData(form);
       const answers = questions.map(q => {
         const choice = formData.get(`q_${q.id}`);
-        return { question_id: q.id, choice_id: choice ? parseInt(choice) : null };
+        return { question_id: q.id, choice_id: choice ? parseInt(choice, 10) : null };
       });
       const submitRes = await fetchJSON(QUIZ_API.submit, 'POST', { answers, source: 'weekly' });
       if (!submitRes.ok) {
@@ -673,9 +728,9 @@ async function openQuiz(count = 6) {
           <p class="text-gray-600">Review answers below.</p>
         </div>
         <div class="space-y-4">
-          ${d.feedback.map((f,i)=>`
+          ${d.feedback.map((f, i) => `
             <div class="border rounded-xl p-4 ${f.correct ? 'border-green-300' : 'border-red-300'}">
-              <div class="font-medium mb-2">${i+1}. ${f.question}</div>
+              <div class="font-medium mb-2">${i + 1}. ${f.question}</div>
               <div class="text-sm"><span class="font-semibold">Your answer:</span> ${f.your_answer ?? '<em>None</em>'}</div>
               <div class="text-sm"><span class="font-semibold">Correct:</span> ${f.correct_answer ?? '-'}</div>
               ${f.explanation ? `<div class="text-sm text-gray-600 mt-2">${f.explanation}</div>` : ''}
@@ -694,22 +749,17 @@ async function openQuiz(count = 6) {
   }
 }
 
-// Hook feature 3 card
 const quizBtn = document.getElementById('feature-quiz');
 if (quizBtn) {
-  quizBtn.addEventListener('click', (e)=>{
+  quizBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    openQuiz(6); // 6 questions mixed (2 easy,2 med,2 hard)
+    openQuiz(6);
   });
 }
+
 // ========================
 // AI Assistance (chat)
 // ========================
-const AI_API = {
-  start: '/api/ai/start',
-  message: '/api/ai/message',
-};
-
 function aiModal() {
   const m = document.createElement('div');
   m.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
@@ -741,24 +791,18 @@ function aiModal() {
   const addMsg = (who, text) => {
     const bubble = document.createElement('div');
     const base = 'max-w-[85%] px-3 py-2 rounded-2xl';
-    if (who === 'user') {
-      bubble.className = `${base} bg-purple-600 text-white ml-auto`;
-    } else {
-      bubble.className = `${base} bg-white border`;
-    }
-    bubble.innerHTML = text.replace(/\n/g, '<br>');
+    bubble.className = who === 'user' ? `${base} bg-purple-600 text-white ml-auto` : `${base} bg-white border`;
+    bubble.innerHTML = (text || '').replace(/\n/g, '<br>');
     chat.appendChild(bubble);
     chat.scrollTop = chat.scrollHeight;
   };
 
   let threadId = null;
 
-  // Start thread
   fetchJSON(AI_API.start, 'POST', {}).then(res => {
     if (res.ok) threadId = res.data.thread_id;
   });
 
-  // Send
   m.querySelector('#aiForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = input.value.trim();
@@ -773,14 +817,12 @@ function aiModal() {
     }
   });
 
-  // Close
   m.querySelector('#aiClose').onclick = () => m.remove();
   m.addEventListener('click', e => { if (e.target === m) m.remove(); });
 
   return m;
 }
 
-// Hook the feature 4 card/button
 const aiBtn = document.getElementById('feature-ai');
 if (aiBtn) {
   aiBtn.addEventListener('click', (e) => {
@@ -788,26 +830,10 @@ if (aiBtn) {
     aiModal();
   });
 }
+
 // ========================
 // Study Hub (Exams → Subjects → Resources + Weightages)
 // ========================
-const HUB_API = {
-  exams: '/api/exams',
-  subjects: (slug) => `/api/subjects?exam_slug=${encodeURIComponent(slug)}`,
-  resources: (subjectId, kinds='youtube,notes,paper') => `/api/resources?subject_id=${subjectId}&kinds=${kinds}`,
-  weights: (slug) => `/api/weightages?exam_slug=${encodeURIComponent(slug)}`,
-  seed: '/api/studyhub-seed',
-};
-
-// Fallback if fetchJSON wasn't defined earlier
-async function fetchJSON(url, method='GET', body) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(url, opts);
-  const data = await r.json().catch(() => ({}));
-  return r.ok ? { ok: true, data } : { ok: false, error: data?.message || r.statusText };
-}
-
 function weightBar(pct) {
   return `
     <div class="w-full bg-gray-200 rounded-full h-2">
@@ -820,24 +846,27 @@ async function hubLoadExams() {
   if (!examSel) return;
 
   const res = await fetchJSON(HUB_API.exams, 'GET');
-  if (!res.ok) return;
+  if (!res.ok) {
+    examSel.innerHTML = `<option value="">Failed to load exams</option>`;
+    return;
+  }
 
-  examSel.innerHTML = res.data.exams.map(e => `<option value="${e.slug}">${e.name}${e.grade ? ' — ' + e.grade : ''}</option>`).join('');
-
-  // If nothing, prompt to seed
   if (!res.data.exams.length) {
     examSel.innerHTML = `<option value="">No exams found. Click "Load demo data".</option>`;
   } else {
+    examSel.innerHTML = res.data.exams
+      .map(e => `<option value="${e.slug}">${e.name}${e.grade ? ' — ' + e.grade : ''}</option>`)
+      .join('');
     hubOnExamChange();
   }
 }
 
 async function hubOnExamChange() {
   const examSel = document.getElementById('hub-exam');
-  const slug = examSel.value;
+  const slug = examSel?.value;
   if (!slug) return;
 
-  // load subjects
+  // subjects
   const subWrap = document.getElementById('hub-subjects');
   subWrap.innerHTML = 'Loading subjects…';
   const subs = await fetchJSON(HUB_API.subjects(slug), 'GET');
@@ -853,7 +882,7 @@ async function hubOnExamChange() {
     subWrap.appendChild(b);
   });
 
-  // load weightages
+  // weightages
   const wres = await fetchJSON(HUB_API.weights(slug), 'GET');
   const wg = document.getElementById('hub-weights');
   if (wres.ok && wres.data.weights.length) {
@@ -876,7 +905,7 @@ async function hubOnExamChange() {
 }
 
 async function hubLoadResourcesForSubject(subjectId, btnEl) {
-  // visual active state
+  // active state
   [...document.querySelectorAll('#hub-subjects button')].forEach(b => b.classList.remove('bg-purple-100', 'border-purple-400'));
   btnEl.classList.add('bg-purple-100', 'border-purple-400');
 
@@ -912,7 +941,7 @@ async function hubLoadResourcesForSubject(subjectId, btnEl) {
     <div class="border rounded-lg p-2">
       <div class="flex items-center justify-between">
         <div>
-          <div class="font-medium">${i.title}${i.year ? ' ('+i.year+')' : ''}</div>
+          <div class="font-medium">${i.title}${i.year ? ' (' + i.year + ')' : ''}</div>
           <div class="text-xs text-gray-500">${i.source || 'Past paper'}</div>
         </div>
         <div class="flex gap-2">
@@ -929,8 +958,10 @@ if (hubSeedBtn) {
   hubSeedBtn.addEventListener('click', async () => {
     const r = await fetchJSON(HUB_API.seed, 'POST', {});
     if (r.ok) {
-      // reload exams
+      showToast('Demo data loaded');
       hubLoadExams();
+    } else {
+      showToast(r.error, 'error');
     }
   });
 }
@@ -941,4 +972,3 @@ if (hubExamSel) {
   hubExamSel.addEventListener('change', hubOnExamChange);
   hubLoadExams();
 }
-

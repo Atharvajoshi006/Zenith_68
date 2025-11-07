@@ -1,16 +1,17 @@
 """
 WSGI config for Adhyeta project.
 
-It exposes the WSGI callable as a module-level variable named ``application``.
+This file exposes the WSGI callable as a module-level variable named ``application``.
+It’s used by WSGI servers like Gunicorn or mod_wsgi to serve your Django application.
 
-For more information on this file, see
+For more details, see:
 https://docs.djangoproject.com/en/5.0/howto/deployment/wsgi/
 """
 
 import os
 from django.core.wsgi import get_wsgi_application
 
-# Set the default settings module for the 'adhyeta' project.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'adhyeta.settings')
+# Ensure the correct settings module is loaded for WSGI servers
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "adhyeta.settings")
 
 application = get_wsgi_application()

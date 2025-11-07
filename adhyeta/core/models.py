@@ -2,48 +2,62 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+# =========================
+# Accounts / Profile / OTP
+# =========================
+
 class StudentProfile(models.Model):
     """
     Extends the default Django User model with extra fields for students.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    phone = models.CharField(max_length=32)
-    student_type = models.CharField(max_length=64)
+    phone = models.CharField(max_length=32, blank=True)
+    student_type = models.CharField(max_length=64, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_login_at = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.user.get_full_name() or self.user.username}"
 
     class Meta:
         verbose_name = "Student Profile"
         verbose_name_plural = "Student Profiles"
         ordering = ['-created_at']
 
+    def __str__(self):
+        return self.user.get_full_name() or self.user.username
+
 
 class OTPCode(models.Model):
     """
     Stores one-time passwords (OTP) for password reset / verification.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otp_codes')
     code = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"OTP {self.code} for {self.user.username}"
 
     class Meta:
         verbose_name = "OTP Code"
         verbose_name_plural = "OTP Codes"
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'code']),
+            models.Index(fields=['created_at']),
+        ]
 
-# --- Learning models ---
+    def __str__(self):
+        return f"OTP {self.code} for {self.user.username}"
+
+
+# ===============
+# Learning models
+# ===============
 
 class Course(models.Model):
     title = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['title']
 
     def __str__(self):
         return self.title
@@ -53,6 +67,12 @@ class Topic(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='topics')
     title = models.CharField(max_length=120)
     summary = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['title']
+        constraints = [
+            models.UniqueConstraint(fields=['course', 'title'], name='unique_topic_per_course'),
+        ]
 
     def __str__(self):
         return f"{self.course.title} → {self.title}"
@@ -65,36 +85,49 @@ class Lesson(models.Model):
     order = models.PositiveIntegerField(default=1)
 
     class Meta:
-        ordering = ['order']
+        ordering = ['order', 'id']
+        constraints = [
+            models.UniqueConstraint(fields=['topic', 'order'], name='unique_lesson_order_per_topic'),
+        ]
 
     def __str__(self):
         return f"{self.topic.title} → {self.order}. {self.title}"
 
 
 class Enrollment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='enrollments')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'course')
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'course'], name='unique_enrollment'),
+        ]
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.user.username} in {self.course.title}"
 
 
 class LessonProgress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lesson_progress')
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='progress')
     completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('user', 'lesson')
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'lesson'], name='unique_lesson_progress'),
+        ]
+        ordering = ['-completed', '-completed_at', 'lesson_id']
 
     def __str__(self):
         return f"{self.user.username} → {self.lesson} → {'✔' if self.completed else '…'}"
-# --- Quiz models (adaptive) ---
+
+
+# ===========
+# Quiz models
+# ===========
 
 class QuizQuestion(models.Model):
     DIFFICULTY = (
@@ -107,6 +140,9 @@ class QuizQuestion(models.Model):
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY, default='easy')
     explanation = models.TextField(blank=True)
 
+    class Meta:
+        ordering = ['topic', 'id']
+
     def __str__(self):
         return f"[{self.topic.title}] {self.text[:50]}"
 
@@ -115,6 +151,9 @@ class QuizChoice(models.Model):
     question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, related_name='choices')
     text = models.CharField(max_length=255)
     is_correct = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return f"{'✓' if self.is_correct else '•'} {self.text[:40]}"
@@ -127,6 +166,12 @@ class QuizAttempt(models.Model):
     total = models.IntegerField(default=0)
     source = models.CharField(max_length=32, default='weekly')  # weekly/daily/custom
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'created_at']),
+        ]
+
     def __str__(self):
         return f"{self.user.username} {self.score}/{self.total} @ {self.created_at:%Y-%m-%d}"
 
@@ -136,12 +181,25 @@ class AttemptAnswer(models.Model):
     question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
     chosen_choice = models.ForeignKey(QuizChoice, on_delete=models.SET_NULL, null=True)
     correct = models.BooleanField(default=False)
-# --- AI Assistant models ---
+
+    class Meta:
+        ordering = ['id']
+        indexes = [
+            models.Index(fields=['attempt']),
+        ]
+
+
+# =================
+# AI Assistant chat
+# =================
 
 class AssistantThread(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assistant_threads')
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"Thread #{self.id} for {self.user.username}"
@@ -157,7 +215,14 @@ class AssistantMessage(models.Model):
     role = models.CharField(max_length=16, choices=ROLE_CHOICES)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-# --- Study Planner models ---
+
+    class Meta:
+        ordering = ['created_at', 'id']
+
+
+# ==================
+# Study Planner data
+# ==================
 
 class StudyPlan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='study_plans')
@@ -167,6 +232,9 @@ class StudyPlan(models.Model):
     daily_minutes = models.PositiveIntegerField(default=180)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.title} ({self.user.username})"
@@ -182,17 +250,27 @@ class StudyTask(models.Model):
 
     class Meta:
         ordering = ['date', 'id']
+        indexes = [
+            models.Index(fields=['plan', 'date']),
+        ]
 
     def __str__(self):
         kind = 'Break' if self.is_break else 'Study'
         return f"{self.date} • {kind} • {self.topic} ({self.minutes}m)"
-# --- Study Hub models (Exams, Subjects, Resources, Weightages) ---
+
+
+# ==========================================
+# Study Hub (Exams, Subjects, Weight, Links)
+# ==========================================
 
 class Exam(models.Model):
     name = models.CharField(max_length=120, unique=True)
     grade = models.CharField(max_length=40, blank=True)  # e.g., "Class 12", "UG", etc.
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return f"{self.name} ({self.grade})" if self.grade else self.name
@@ -203,8 +281,10 @@ class Subject(models.Model):
     name = models.CharField(max_length=120)
 
     class Meta:
-        unique_together = ('exam', 'name')
         ordering = ['name']
+        constraints = [
+            models.UniqueConstraint(fields=['exam', 'name'], name='unique_subject_per_exam'),
+        ]
 
     def __str__(self):
         return f"{self.exam.name} → {self.name}"
@@ -217,6 +297,9 @@ class SubjectWeightage(models.Model):
 
     class Meta:
         ordering = ['-year', 'subject__name']
+        indexes = [
+            models.Index(fields=['subject', 'year']),
+        ]
 
     def __str__(self):
         return f"{self.subject.name} {self.weight_percent}%"
@@ -238,7 +321,12 @@ class Resource(models.Model):
 
     class Meta:
         ordering = ['kind', '-year', 'title']
+        indexes = [
+            models.Index(fields=['subject', 'kind']),
+            models.Index(fields=['year']),
+        ]
 
     def __str__(self):
         return f"[{self.get_kind_display()}] {self.title}"
+
 
